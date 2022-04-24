@@ -22,10 +22,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.work.Data
-import androidx.work.OneTimeWorkRequest
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
+import androidx.work.*
 import com.example.background.workers.BlurWorker
 import com.example.background.workers.CleanupWorker
 import com.example.background.workers.SaveImageToFileWorker
@@ -56,8 +53,13 @@ class BlurViewModel(application: Application) : ViewModel() {
 //        workManager.enqueue(blurRequest)
 
         // Add WorkRequest to Cleanup temporary images
-        var continuation = workManager
-            .beginWith(OneTimeWorkRequest.from(CleanupWorker::class.java))
+//        var continuation = workManager
+//            .beginWith(OneTimeWorkRequest.from(CleanupWorker::class.java))
+        var continuation = workManager.beginUniqueWork(
+            IMAGE_MANIPULATION_WORK_NAME,
+            ExistingWorkPolicy.REPLACE,
+            OneTimeWorkRequest.from(CleanupWorker::class.java)
+        )
 
         // Add WorkRequest to blur the image
 //        val blurRequest = OneTimeWorkRequest.Builder(BlurWorker::class.java)
@@ -100,14 +102,12 @@ class BlurViewModel(application: Application) : ViewModel() {
     private fun getImageUri(context: Context): Uri {
         val resources = context.resources
 
-        val imageUri = Uri.Builder()
+        return Uri.Builder()
             .scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
             .authority(resources.getResourcePackageName(R.drawable.android_cupcake))
             .appendPath(resources.getResourceTypeName(R.drawable.android_cupcake))
             .appendPath(resources.getResourceEntryName(R.drawable.android_cupcake))
             .build()
-
-        return imageUri
     }
 
     internal fun setOutputUri(outputImageUri: String?) {
